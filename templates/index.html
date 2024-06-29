@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wheel Speed Control | Prime Robotics</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+    .card {
+      margin-top: 20px;
+    }
+    .card-header {
+      font-weight: bold;
+      text-align: center;
+      background-color: #007bff;
+      color: white;
+    }
+    .card-body {
+      text-align: center;
+    }
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #6c757d;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    function fetchWheelSpeeds() {
+      $.ajax({
+        url: '/get_wheel_speeds',
+        method: 'GET',
+        success: function(data) {
+          $('#left_speed').text(data.left_speed);
+          $('#right_speed').text(data.right_speed);
+        },
+        error: function(error) {
+          console.error('Error fetching wheel speeds:', error);
+        }
+      });
+    }
+
+    function fetchSetpoint() {
+      $.ajax({
+        url: '/get_setpoint',
+        method: 'GET',
+        success: function(data) {
+          $('#current_setpoint').text(data.set_point);
+        },
+        error: function(error) {
+          console.error('Error fetching setpoint:', error);
+        }
+      });
+    }
+
+    function fetchUpdateRate() {
+      $.ajax({
+        url: '/get_update_rate',
+        method: 'GET',
+        success: function(data) {
+          $('#current_update_rate').text(data.update_rate);
+          $('#update_rate').val(data.update_rate);
+        },
+        error: function(error) {
+          console.error('Error fetching update rate:', error);
+        }
+      });
+    }
+
+    $(document).ready(function() {
+      // Fetch wheel speeds, setpoint, and update rate every second
+      setInterval(fetchWheelSpeeds, 1000);
+      setInterval(fetchSetpoint, 1000);
+      fetchUpdateRate();
+
+      $('#setpoint_form').submit(function(event) {
+        event.preventDefault();
+        var set_point = $('#set_point').val();
+        $.ajax({
+          url: '/set_setpoint',
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ set_point: set_point }),
+          success: function(response) {
+            alert('Set point updated successfully');
+          },
+          error: function(error) {
+            console.error('Error updating set point:', error);
+          }
+        });
+      });
+
+      $('#update_rate_form').submit(function(event) {
+        event.preventDefault();
+        var update_rate = $('#update_rate').val();
+        $.ajax({
+          url: '/set_update_rate',
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ update_rate: update_rate }),
+          success: function(response) {
+            alert('Update rate updated successfully');
+          },
+          error: function(error) {
+            console.error('Error updating update rate:', error);
+          }
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <header class="text-center">
+      <h1 class="display-4">Prime Robotics</h1>
+      <p class="lead">Wheel Speed Control Dashboard</p>
+    </header>
+
+    <div class="card">
+      <div class="card-header">
+        Wheel Speeds
+      </div>
+      <div class="card-body">
+        <p>Left Speed: <span id="left_speed">{{ wheel_speeds.left_speed }}</span></p>
+        <p>Right Speed: <span id="right_speed">{{ wheel_speeds.right_speed }}</span></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        Set Setpoint
+      </div>
+      <div class="card-body">
+        <p>Current Setpoint: <span id="current_setpoint">{{ set_point }}</span></p>
+        <form id="setpoint_form" class="form-inline justify-content-center">
+          <div class="form-group mx-sm-3 mb-2">
+            <label for="set_point" class="sr-only">Setpoint</label>
+            <input type="text" class="form-control" id="set_point" name="set_point" value="{{ set_point }}" placeholder="Enter Setpoint">
+          </div>
+          <button type="submit" class="btn btn-primary mb-2">Update Setpoint</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        Update Speed Update Rate
+      </div>
+      <div class="card-body">
+        <p>Current Update Rate: <span id="current_update_rate">{{ update_rate }}</span> ms</p>
+        <form id="update_rate_form" class="form-inline justify-content-center">
+          <div class="form-group mx-sm-3 mb-2">
+            <label for="update_rate" class="sr-only">Update Rate</label>
+            <input type="text" class="form-control" id="update_rate" name="update_rate" value="{{ update_rate }}" placeholder="Enter Update Rate">
+          </div>
+          <button type="submit" class="btn btn-primary mb-2">Update Rate</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>&copy; 2024 Prime Robotics. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
